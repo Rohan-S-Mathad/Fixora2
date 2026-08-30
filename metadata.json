@@ -1,0 +1,6 @@
+{
+  "name": "Fixora",
+  "description": "Developer-first bug tracking and AI security vulnerability scanner platform with real-time issue triage, Kanban workflows, and automated repository analysis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
