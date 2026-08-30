@@ -85,14 +85,14 @@ export const Header: React.FC<{ onToggleMobileSidebar: () => void }> = ({
               setIsNotifDropdownOpen(false);
               setIsUserDropdownOpen(false);
             }}
-            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-zinc-200 bg-zinc-900/90 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/80 transition-all"
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-200 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/80 transition-colors"
           >
-            <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-emerald-500" />
             <span className="truncate max-w-[120px] sm:max-w-[180px]">
               {activeProject ? activeProject.name : "Select Project"}
             </span>
             {activeProject && (
-              <span className="text-[10px] font-mono text-zinc-400 px-1 py-0.2 rounded bg-zinc-800">
+              <span className="text-[10px] font-mono text-zinc-400 px-1 py-0.2 rounded bg-zinc-800 border border-zinc-700/60">
                 {activeProject.key}
               </span>
             )}
@@ -264,7 +264,7 @@ export const Header: React.FC<{ onToggleMobileSidebar: () => void }> = ({
             }}
             className="flex items-center gap-2 p-1 pl-1.5 rounded-lg hover:bg-zinc-800/80 transition-colors"
           >
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center text-xs font-bold ring-1 ring-white/10">
+            <div className="w-7 h-7 rounded-md bg-zinc-800 text-zinc-200 border border-zinc-700 flex items-center justify-center text-xs font-mono font-semibold">
               {getInitials(user?.name)}
             </div>
             <ChevronDown className="w-3 h-3 text-zinc-400 hidden sm:block" />

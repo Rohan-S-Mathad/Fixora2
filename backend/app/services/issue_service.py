@@ -1,6 +1,7 @@
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 from backend.app.models.issue import Issue, Label
 from backend.app.models.audit import AuditLog
@@ -42,48 +43,57 @@ class IssueService:
     async def create_issue(
         db: AsyncSession, issue_in: IssueCreate, reporter_id: str
     ) -> Issue:
-        issue_number = await IssueService.get_next_issue_number(
-            db, issue_in.project_id
-        )
+        max_retries = 5
+        for attempt in range(max_retries):
+            try:
+                issue_number = await IssueService.get_next_issue_number(
+                    db, issue_in.project_id
+                )
 
-        labels = []
-        if issue_in.labels:
-            labels = await IssueService.get_or_create_labels(db, issue_in.labels)
+                labels = []
+                if issue_in.labels:
+                    labels = await IssueService.get_or_create_labels(db, issue_in.labels)
 
-        issue = Issue(
-            project_id=issue_in.project_id,
-            reporter_id=reporter_id,
-            issue_number=issue_number,
-            title=issue_in.title,
-            description=issue_in.description,
-            status=issue_in.status or "open",
-            severity=issue_in.severity or "medium",
-            priority=issue_in.priority or "medium",
-            component=issue_in.component or "General",
-            source=issue_in.source or "manual",
-            assignee_id=issue_in.assignee_id,
-            sprint_id=issue_in.sprint_id,
-            github_issue_url=issue_in.github_issue_url,
-            ai_summary=issue_in.ai_summary,
-            scan_finding_id=issue_in.scan_finding_id,
-            reproduction_steps=issue_in.reproduction_steps,
-            suggested_fix=issue_in.suggested_fix,
-            labels=labels,
-        )
-        db.add(issue)
-        await db.flush()
+                issue = Issue(
+                    project_id=issue_in.project_id,
+                    reporter_id=reporter_id,
+                    issue_number=issue_number,
+                    title=issue_in.title,
+                    description=issue_in.description,
+                    status=issue_in.status or "open",
+                    severity=issue_in.severity or "medium",
+                    priority=issue_in.priority or "medium",
+                    component=issue_in.component or "General",
+                    source=issue_in.source or "manual",
+                    assignee_id=issue_in.assignee_id,
+                    sprint_id=issue_in.sprint_id,
+                    github_issue_url=issue_in.github_issue_url,
+                    ai_summary=issue_in.ai_summary,
+                    scan_finding_id=issue_in.scan_finding_id,
+                    reproduction_steps=issue_in.reproduction_steps,
+                    suggested_fix=issue_in.suggested_fix,
+                    labels=labels,
+                )
+                db.add(issue)
+                await db.flush()
 
-        # Add initial audit history
-        audit = AuditLog(
-            issue_id=issue.id,
-            user_id=reporter_id,
-            field_changed="created",
-            new_value=f"Issue #{issue_number} created",
-        )
-        db.add(audit)
-        await db.commit()
-        await db.refresh(issue)
-        return issue
+                # Add initial audit history
+                audit = AuditLog(
+                    issue_id=issue.id,
+                    user_id=reporter_id,
+                    field_changed="created",
+                    new_value=f"Issue #{issue_number} created",
+                )
+                db.add(audit)
+                await db.commit()
+                await db.refresh(issue)
+                return issue
+            except IntegrityError as e:
+                await db.rollback()
+                if attempt == max_retries - 1:
+                    raise e
+
+        raise RuntimeError("Failed to allocate unique issue number after retries")
 
     @staticmethod
     async def update_issue(

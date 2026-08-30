@@ -84,8 +84,8 @@ export const CommandPalette: React.FC = () => {
       },
       {
         id: "nav-hunter",
-        title: "Go to AI Bug Hunter",
-        category: "AI Tools",
+        title: "Go to Security Scanner",
+        category: "Analysis & Security",
         icon: ShieldAlert,
         action: () => {
           setActiveView("ai-hunter");
@@ -94,8 +94,8 @@ export const CommandPalette: React.FC = () => {
       },
       {
         id: "nav-assistant",
-        title: "Go to AI Bug Assistant",
-        category: "AI Tools",
+        title: "Go to Diagnostic Assistant",
+        category: "Analysis & Security",
         icon: Sparkles,
         action: () => {
           setActiveView("ai-assistant");

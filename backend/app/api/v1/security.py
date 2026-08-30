@@ -16,6 +16,7 @@ from backend.app.schemas.security_finding import (
     ScanOut,
 )
 from backend.app.services.issue_service import IssueService
+from backend.app.services.security_scanner_service import SecurityScannerService
 
 router = APIRouter()
 
@@ -72,108 +73,54 @@ async def create_scan(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    now = datetime.now(timezone.utc)
     scan = Scan(
         project_id=scan_in.project_id,
         target_url=scan_in.target_url,
         scan_type=scan_in.scan_type or "repository",
-        status="completed",
+        status="queued",
         initiated_by=current_user.id,
-        started_at=now,
-        completed_at=now,
-        summary={
-            "total_findings": 4,
-            "critical": 1,
-            "high": 1,
-            "medium": 2,
-            "low": 0,
-            "security_score": "A-",
-            "scanned_files": 48,
-            "duration_ms": 1420,
-        },
+        created_at=datetime.now(timezone.utc),
     )
     db.add(scan)
-    await db.flush()
-
-    # Create realistic AST/security findings for the scanned repository
-    sample_findings = [
-        SecurityFinding(
-            scan_id=scan.id,
-            tool="semgrep",
-            title="Potential Hardcoded API Secret Token",
-            description="High entropy token assignment detected in client-side bundle config.",
-            file_path="src/config/keys.ts",
-            line_number=14,
-            code_snippet="export const API_SECRET_FALLBACK = 'sk_live_9482710398471923';",
-            severity="critical",
-            confidence="high",
-            ai_analysis="Exposing static tokens in frontend bundles enables unauthorized API impersonation.",
-            ai_suggested_fix="Migrate the token to server-side environment variables and access via server proxy routes.",
-            evidence="Pattern match: /sk_live_[a-zA-Z0-9]{20,}/",
-            status="pending",
-        ),
-        SecurityFinding(
-            scan_id=scan.id,
-            tool="bandit",
-            title="Unsanitized Dynamic Input in SQL Query",
-            description="String interpolation detected in query builder parameter.",
-            file_path="backend/services/query.py",
-            line_number=42,
-            code_snippet="query = f'SELECT * FROM users WHERE email = {user_input}'",
-            severity="high",
-            confidence="high",
-            ai_analysis="Direct string formatting permits SQL injection payloads.",
-            ai_suggested_fix="Replace with parameterized SQLAlchemy `select().where(User.email == user_input)`.",
-            evidence="B608:hardcoded_sql_expressions",
-            status="pending",
-        ),
-        SecurityFinding(
-            scan_id=scan.id,
-            tool="gitleaks",
-            title="Missing Rate Limiting on Authentication Route",
-            description="Endpoint `/api/v1/auth/login` does not enforce client throttling.",
-            file_path="backend/app/api/v1/auth.py",
-            line_number=28,
-            code_snippet="@router.post('/login')",
-            severity="medium",
-            confidence="medium",
-            ai_analysis="Absence of rate limiting leaves the login endpoint vulnerable to credential brute-forcing.",
-            ai_suggested_fix="Attach slowapi rate limiting middleware `limiter.limit('5/minute')`.",
-            evidence="CWE-307: Improper Restriction of Excessive Authentication Attempts",
-            status="pending",
-        ),
-        SecurityFinding(
-            scan_id=scan.id,
-            tool="semgrep",
-            title="Dangerous innerHTML Assignment Without Sanitization",
-            description="Raw string rendering detected in markdown preview component.",
-            file_path="src/components/MarkdownRenderer.tsx",
-            line_number=88,
-            code_snippet="element.innerHTML = rawMarkdownText;",
-            severity="medium",
-            confidence="high",
-            ai_analysis="Unsanitized innerHTML assignment allows Cross-Site Scripting (XSS).",
-            ai_suggested_fix="Pass rendered markdown through DOMPurify or use standard React Markdown components.",
-            evidence="CWE-79: Cross-site Scripting",
-            status="pending",
-        ),
-    ]
-
-    for f in sample_findings:
-        db.add(f)
-
     await db.commit()
     await db.refresh(scan)
+
+    # Execute genuine security analysis pipeline
+    completed_scan = await SecurityScannerService.run_scan_pipeline(
+        db=db,
+        scan_id=scan.id,
+        target_path_or_url=scan_in.target_url,
+        user_id=current_user.id,
+    )
 
     result = await db.execute(
         select(Scan)
         .options(selectinload(Scan.findings))
-        .where(Scan.id == scan.id)
+        .where(Scan.id == completed_scan.id)
     )
     return result.scalars().first()
 
 
-@router.post("/findings/{finding_id}/create-issue")
+@router.post("/scans/{scan_id}/complete", response_model=ScanOut)
+async def complete_scan(
+    scan_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(
+        select(Scan)
+        .options(selectinload(Scan.findings))
+        .where(Scan.id == scan_id)
+    )
+    scan = result.scalars().first()
+    if not scan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Scan not found"
+        )
+    return scan
+
+
+@router.post("/findings/{finding_id}/create-issue", response_model=IssueOut)
 async def create_issue_from_finding(
     finding_id: str,
     db: AsyncSession = Depends(get_db),
@@ -192,7 +139,6 @@ async def create_issue_from_finding(
 
     project_id = finding.scan.project_id if finding.scan else None
     if not project_id:
-        # Get first project as fallback
         proj_res = await db.execute(select(Issue.project_id).limit(1))
         project_id = proj_res.scalar() or "default-project"
 
@@ -200,16 +146,16 @@ async def create_issue_from_finding(
         project_id=project_id,
         title=f"Security: {finding.title}",
         description=f"Automated security finding detected by {finding.tool}.\n\n"
-        f"**File:** `{finding.file_path}:{finding.line_number}`\n\n"
+        f"**File:** `{finding.file_path}:{finding.line_number or 0}`\n\n"
         f"**Description:**\n{finding.description}\n\n"
-        f"```\n{finding.code_snippet}\n```",
+        f"```\n{finding.code_snippet or ''}\n```",
         severity=finding.severity,
         priority="high" if finding.severity in ["critical", "high"] else "medium",
         component="Security",
         source="repo_scan",
         scan_finding_id=finding.id,
         suggested_fix=finding.ai_suggested_fix,
-        labels=["security", finding.tool, finding.severity],
+        labels=["security", finding.tool.lower().replace(" ", "-"), finding.severity],
     )
 
     issue = await IssueService.create_issue(
@@ -220,7 +166,18 @@ async def create_issue_from_finding(
     finding.created_issue_id = issue.id
     await db.commit()
 
-    return {"issue_id": issue.id, "finding_id": finding.id, "status": "created_issue"}
+    # Load relations for IssueOut
+    issue_with_rel = await db.execute(
+        select(Issue)
+        .options(
+            selectinload(Issue.reporter),
+            selectinload(Issue.assignee),
+            selectinload(Issue.labels),
+            selectinload(Issue.comments),
+        )
+        .where(Issue.id == issue.id)
+    )
+    return issue_with_rel.scalars().first()
 
 
 @router.patch("/findings/{finding_id}/dismiss")

@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useProject } from "../../context/ProjectContext";
 import { useAuth } from "../../context/AuthContext";
+import { api, DashboardMetrics } from "../../lib/api";
 import {
   CheckSquare,
   AlertTriangle,
@@ -11,10 +12,11 @@ import {
   Sparkles,
   ArrowRight,
   TrendingUp,
-  GitPullRequest,
   Plus,
   Terminal,
   Activity,
+  FolderGit2,
+  Code2,
 } from "lucide-react";
 import { StatusBadge, SeverityBadge, PriorityBadge } from "../common/Badges";
 import { formatDate, formatDateTime, getInitials } from "../../lib/utils";
@@ -31,23 +33,58 @@ export const DashboardView: React.FC = () => {
   } = useProject();
   const { user } = useAuth();
 
-  // Metrics
-  const totalIssues = issues.length;
-  const openIssues = issues.filter(
-    (i) => i.status === IssueStatus.OPEN || i.status === IssueStatus.REOPENED
-  ).length;
-  const inProgressIssues = issues.filter(
-    (i) => i.status === IssueStatus.IN_PROGRESS || i.status === IssueStatus.IN_REVIEW
-  ).length;
-  const criticalIssues = issues.filter(
-    (i) =>
-      i.severity === IssueSeverity.CRITICAL &&
-      i.status !== IssueStatus.RESOLVED &&
-      i.status !== IssueStatus.CLOSED
-  ).length;
-  const resolvedIssues = issues.filter(
-    (i) => i.status === IssueStatus.RESOLVED || i.status === IssueStatus.CLOSED
-  ).length;
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [loadingMetrics, setLoadingMetrics] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchMetrics = async () => {
+      setLoadingMetrics(true);
+      try {
+        const data = await api.dashboard.getMetrics(activeProject?.id);
+        if (isMounted) {
+          setMetrics(data);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch backend metrics, using local issue state", err);
+      } finally {
+        if (isMounted) setLoadingMetrics(false);
+      }
+    };
+    fetchMetrics();
+    return () => {
+      isMounted = false;
+    };
+  }, [activeProject?.id, issues]);
+
+  // Derived or backend metrics
+  const totalIssues = metrics ? metrics.total_issues : issues.length;
+  const openIssues = metrics
+    ? metrics.open_issues
+    : issues.filter(
+        (i) => i.status === IssueStatus.OPEN || i.status === IssueStatus.REOPENED
+      ).length;
+  const inProgressIssues = metrics
+    ? metrics.in_progress_issues
+    : issues.filter(
+        (i) => i.status === IssueStatus.IN_PROGRESS || i.status === IssueStatus.IN_REVIEW
+      ).length;
+  const criticalIssues = metrics
+    ? metrics.critical_issues
+    : issues.filter(
+        (i) =>
+          i.severity === IssueSeverity.CRITICAL &&
+          i.status !== IssueStatus.RESOLVED &&
+          i.status !== IssueStatus.CLOSED
+      ).length;
+  const resolvedIssues = metrics
+    ? metrics.resolved_issues
+    : issues.filter(
+        (i) => i.status === IssueStatus.RESOLVED || i.status === IssueStatus.CLOSED
+      ).length;
+
+  const securityScore = metrics?.security_score || "B+";
+  const securityScoreNum = metrics?.security_score_num || 84;
 
   // Recent high priority issues
   const urgentIssues = issues
@@ -57,119 +94,108 @@ export const DashboardView: React.FC = () => {
         i.status !== IssueStatus.RESOLVED &&
         i.status !== IssueStatus.CLOSED
     )
-    .slice(0, 5);
+    .slice(0, 6);
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Welcome Banner / Overview Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
+      {/* Overview Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold tracking-tight text-white">
-              Developer Dashboard
+              Engineering Overview
             </h1>
-            <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700/70">
               {activeProject?.name || "All Projects"}
             </span>
           </div>
           <p className="text-xs text-zinc-400 mt-1">
-            Real-time bug telemetry, active sprint health, and automated vulnerability monitoring.
+            Issue backlog velocity, open blockers, and automated vulnerability pipeline status.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveView("ai-hunter")}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800/90 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/80 transition-colors"
           >
-            <ShieldAlert className="w-3.5 h-3.5" />
-            <span>Launch Repo Scanner</span>
+            <ShieldAlert className="w-3.5 h-3.5 text-zinc-400" />
+            <span>Security Scanner</span>
           </button>
           <button
             onClick={() => setIsCreateIssueOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Log Bug</span>
+            <span>New Issue</span>
           </button>
         </div>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* KPI Grid - Clean single-container border-divided strip */}
+      <div className="grid grid-cols-2 md:grid-cols-4 bg-[#0d0f17] border border-zinc-800/80 rounded-xl divide-y sm:divide-y-0 sm:divide-x divide-zinc-800/80 overflow-hidden">
         {/* Open Issues */}
         <div
           onClick={() => setActiveView("issues")}
-          className="p-4 rounded-xl bg-[#0e1017] border border-zinc-800/80 hover:border-zinc-700/80 cursor-pointer transition-all hover:bg-zinc-900/40"
+          className="p-4.5 cursor-pointer hover:bg-zinc-800/30 transition-colors"
         >
-          <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Open Issues</span>
-            <div className="p-1.5 rounded-lg bg-sky-500/10 text-sky-400">
-              <CheckSquare className="w-4 h-4" />
-            </div>
+          <div className="flex items-center justify-between text-zinc-400 mb-1.5">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Open Backlog</span>
+            <CheckSquare className="w-3.5 h-3.5 text-sky-400" />
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold font-mono text-zinc-100">{openIssues}</span>
-            <span className="text-xs text-zinc-500 font-mono">/ {totalIssues} total</span>
+            <span className="text-xs text-zinc-500 font-mono">/ {totalIssues}</span>
           </div>
-          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-zinc-400">
-            <span className="text-sky-400 font-semibold font-mono">
-              {totalIssues ? Math.round((openIssues / totalIssues) * 100) : 0}%
-            </span>
-            <span>of active backlog</span>
-          </div>
+          <p className="text-[11px] text-zinc-500 mt-1 font-mono">
+            {totalIssues ? Math.round((openIssues / totalIssues) * 100) : 0}% unresolved
+          </p>
         </div>
 
         {/* Critical Blockers */}
         <div
           onClick={() => setActiveView("issues")}
-          className="p-4 rounded-xl bg-[#0e1017] border border-rose-900/30 hover:border-rose-700/50 cursor-pointer transition-all hover:bg-rose-950/10"
+          className="p-4.5 cursor-pointer hover:bg-zinc-800/30 transition-colors"
         >
-          <div className="flex items-center justify-between text-rose-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Critical Blockers</span>
-            <div className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400">
-              <Flame className="w-4 h-4" />
-            </div>
+          <div className="flex items-center justify-between text-rose-400 mb-1.5">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-rose-400 font-medium">Critical Blockers</span>
+            <Flame className="w-3.5 h-3.5 text-rose-400" />
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold font-mono text-rose-400">{criticalIssues}</span>
-            <span className="text-xs text-rose-400/60 font-mono">P0 / Sev-1</span>
+            <span className="text-xs text-zinc-500 font-mono">P0 / Sev-1</span>
           </div>
-          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-rose-300/80">
-            <span className="font-semibold">Requires immediate fix</span>
-          </div>
+          <p className="text-[11px] text-rose-400/70 mt-1 font-mono">
+            {criticalIssues > 0 ? "Requires remediation" : "No active blockers"}
+          </p>
         </div>
 
-        {/* In Progress */}
+        {/* In Flight */}
         <div
           onClick={() => setActiveView("board")}
-          className="p-4 rounded-xl bg-[#0e1017] border border-zinc-800/80 hover:border-zinc-700/80 cursor-pointer transition-all hover:bg-zinc-900/40"
+          className="p-4.5 cursor-pointer hover:bg-zinc-800/30 transition-colors"
         >
-          <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">In Flight</span>
-            <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400">
-              <Clock className="w-4 h-4" />
-            </div>
+          <div className="flex items-center justify-between text-zinc-400 mb-1.5">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">In Progress</span>
+            <Clock className="w-3.5 h-3.5 text-amber-400" />
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold font-mono text-zinc-100">{inProgressIssues}</span>
-            <span className="text-xs text-zinc-500 font-mono">assigned</span>
+            <span className="text-xs text-zinc-500 font-mono">active</span>
           </div>
-          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-amber-400">
-            <span>In dev or review</span>
-          </div>
+          <p className="text-[11px] text-amber-400/80 mt-1 font-mono">
+            Under active development
+          </p>
         </div>
 
-        {/* Resolution Rate */}
+        {/* Resolved */}
         <div
           onClick={() => setActiveView("analytics")}
-          className="p-4 rounded-xl bg-[#0e1017] border border-zinc-800/80 hover:border-zinc-700/80 cursor-pointer transition-all hover:bg-zinc-900/40"
+          className="p-4.5 cursor-pointer hover:bg-zinc-800/30 transition-colors"
         >
-          <div className="flex items-center justify-between text-zinc-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Resolved</span>
-            <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
+          <div className="flex items-center justify-between text-zinc-400 mb-1.5">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Resolved Rate</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-bold font-mono text-emerald-400">{resolvedIssues}</span>
@@ -177,16 +203,16 @@ export const DashboardView: React.FC = () => {
               ({totalIssues ? Math.round((resolvedIssues / totalIssues) * 100) : 0}%)
             </span>
           </div>
-          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-emerald-400/80">
-            <TrendingUp className="w-3.5 h-3.5" />
-            <span>Sprint velocity steady</span>
-          </div>
+          <p className="text-[11px] text-emerald-400/70 mt-1 font-mono flex items-center gap-1">
+            <TrendingUp className="w-3 h-3" />
+            <span>Closed issues verified</span>
+          </p>
         </div>
       </div>
 
-      {/* Main Grid: Priority Issues & AI Bug Hunter Centerpiece */}
+      {/* Main 2-Column Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: High Priority Issues */}
+        {/* Left 2 Cols: High Priority Issues List */}
         <div className="lg:col-span-2 space-y-4">
           <div className="p-5 rounded-xl bg-[#0d0f17] border border-zinc-800/80">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80">
@@ -196,7 +222,7 @@ export const DashboardView: React.FC = () => {
               </div>
               <button
                 onClick={() => setActiveView("issues")}
-                className="text-xs font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                className="text-xs font-medium text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors"
               >
                 <span>View All ({totalIssues})</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -205,7 +231,7 @@ export const DashboardView: React.FC = () => {
 
             <div className="divide-y divide-zinc-800/50 mt-1">
               {urgentIssues.length === 0 ? (
-                <div className="py-8 text-center text-zinc-500 text-xs">
+                <div className="py-10 text-center text-zinc-500 text-xs">
                   No active critical bugs in this project.
                 </div>
               ) : (
@@ -227,9 +253,11 @@ export const DashboardView: React.FC = () => {
                           {issue.title}
                         </p>
                         <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-zinc-500">
-                          <span className="font-mono text-zinc-400">{issue.component}</span>
+                          <span className="font-mono text-zinc-400 bg-zinc-800/70 px-1.5 py-0.2 rounded text-[10px]">
+                            {issue.component}
+                          </span>
                           <span>•</span>
-                          <span>Reported {formatDate(issue.created_at)}</span>
+                          <span className="font-mono">{formatDate(issue.created_at)}</span>
                           {issue.assignee && (
                             <>
                               <span>•</span>
@@ -237,7 +265,7 @@ export const DashboardView: React.FC = () => {
                                 <span className="w-4 h-4 rounded-full bg-zinc-800 flex items-center justify-center text-[9px] font-bold text-zinc-300">
                                   {getInitials(issue.assignee.name)}
                                 </span>
-                                {issue.assignee.name}
+                                <span>{issue.assignee.name}</span>
                               </span>
                             </>
                           )}
@@ -255,88 +283,90 @@ export const DashboardView: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick AI Diagnostics Trigger */}
-          <div className="p-4 rounded-xl bg-gradient-to-r from-indigo-950/40 via-purple-950/30 to-[#0e1017] border border-indigo-500/30 flex items-center justify-between gap-4">
+          {/* Quick Diagnostics Action */}
+          <div className="p-4 rounded-xl bg-[#0d0f17] border border-zinc-800/80 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 flex items-center justify-center shrink-0">
-                <Sparkles className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 text-indigo-400 flex items-center justify-center shrink-0">
+                <Code2 className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs font-semibold text-indigo-200">AI Bug Assistant Analysis</p>
+                <p className="text-xs font-semibold text-zinc-200">Diagnostic Bug Assistant</p>
                 <p className="text-[11px] text-zinc-400">
-                  Paste error logs or stack traces to auto-categorize severity and generate instant code fixes.
+                  Analyze stack traces, deduct root causes, and generate automated code patches.
                 </p>
               </div>
             </div>
             <button
               onClick={() => setActiveView("ai-assistant")}
-              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shrink-0 shadow-md transition-all"
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 shrink-0 transition-colors"
             >
               Analyze Log
             </button>
           </div>
         </div>
 
-        {/* Right Col: AI Bug Hunter Card & Quick Scan Widget */}
+        {/* Right Col: Security Scanner & Active Workspace Status */}
         <div className="space-y-4">
           <div className="p-5 rounded-xl bg-[#0d0f17] border border-zinc-800/80 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80">
               <div className="flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-cyan-400" />
-                <h2 className="text-sm font-semibold text-zinc-100">Repository Scanner</h2>
+                <h2 className="text-sm font-semibold text-zinc-100">Security Pipeline</h2>
               </div>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-800/50">
-                SAST + AI
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+                SAST Engine
               </span>
             </div>
 
-            <div className="p-3.5 rounded-lg bg-zinc-900/60 border border-zinc-800 space-y-2.5">
+            <div className="p-3.5 rounded-lg bg-zinc-900/60 border border-zinc-800/80 space-y-2.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-400">Security Score</span>
-                <span className="text-emerald-400 font-mono font-bold">A- (88/100)</span>
+                <span className="text-zinc-400 font-mono">Security Score</span>
+                <span className="text-emerald-400 font-mono font-bold">
+                  {securityScore} ({securityScoreNum}/100)
+                </span>
               </div>
               <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 w-[88%]" />
+                <div
+                  className="h-full bg-emerald-500 transition-all duration-300"
+                  style={{ width: `${Math.min(100, Math.max(0, securityScoreNum))}%` }}
+                />
               </div>
               <div className="flex items-center justify-between text-[11px] text-zinc-500 font-mono pt-1">
-                <span>54 files analyzed</span>
+                <span>AST Rule Engine Active</span>
                 <span>Bandit • Semgrep • Gitleaks</span>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <p className="text-xs text-zinc-400 leading-relaxed">
-                Automated security pipeline parses AST trees for SQL injections, secrets, and hardcoded tokens.
-              </p>
-              <button
-                onClick={() => setActiveView("ai-hunter")}
-                className="w-full py-2 px-3 rounded-lg text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border border-zinc-700 flex items-center justify-center gap-2 transition-colors"
-              >
-                <Terminal className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Open Security Scanner</span>
-              </button>
-            </div>
+            <button
+              onClick={() => setActiveView("ai-hunter")}
+              className="w-full py-2 px-3 rounded-lg text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 flex items-center justify-center gap-2 transition-colors"
+            >
+              <Terminal className="w-3.5 h-3.5 text-zinc-400" />
+              <span>Open Security Scanner</span>
+            </button>
           </div>
 
-          {/* Project Details Box */}
-          <div className="p-4 rounded-xl bg-[#0d0f17] border border-zinc-800/80 space-y-3">
-            <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-              Active Environment
+          {/* Active Workspace Info */}
+          <div className="p-4.5 rounded-xl bg-[#0d0f17] border border-zinc-800/80 space-y-3">
+            <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400 font-mono">
+              Workspace Context
             </div>
             <div className="space-y-2 text-xs">
               <div className="flex items-center justify-between text-zinc-400">
                 <span>Repository</span>
-                <span className="font-mono text-zinc-200 text-[11px] truncate max-w-[140px]">
+                <span className="font-mono text-zinc-200 text-[11px] truncate max-w-[150px]">
                   {activeProject?.github_repo_url || "github.com/org/fixora"}
                 </span>
               </div>
               <div className="flex items-center justify-between text-zinc-400">
-                <span>Async Engine</span>
-                <span className="font-mono text-indigo-400 text-[11px]">Celery + Redis</span>
+                <span>Project Key</span>
+                <span className="font-mono text-indigo-400 text-[11px]">
+                  {activeProject?.key || "FIX"}
+                </span>
               </div>
               <div className="flex items-center justify-between text-zinc-400">
-                <span>Vector Index</span>
-                <span className="font-mono text-purple-400 text-[11px]">pgvector (HNSW)</span>
+                <span>Engine Runtime</span>
+                <span className="font-mono text-zinc-300 text-[11px]">FastAPI 0.110 + React</span>
               </div>
             </div>
           </div>

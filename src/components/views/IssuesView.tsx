@@ -128,10 +128,10 @@ export const IssuesView: React.FC = () => {
           <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5" />
           <input
             type="text"
-            placeholder="Search by title, FIX-#, component..."
+            placeholder="Filter by title, FIX-#, component..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 bg-[#141724] border border-zinc-700/70 rounded-lg text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 font-mono"
+            className="w-full pl-8 pr-3 py-1.5 bg-[#121520] border border-zinc-800 rounded-lg text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-zinc-600 font-mono"
           />
         </div>
 
@@ -139,7 +139,7 @@ export const IssuesView: React.FC = () => {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-2.5 py-1.5 bg-[#141724] border border-zinc-700/70 rounded-lg text-xs text-zinc-200 focus:outline-none focus:border-indigo-500"
+          className="px-2.5 py-1.5 bg-[#121520] border border-zinc-800 rounded-lg text-xs text-zinc-200 focus:outline-none focus:border-zinc-600"
         >
           <option value="all">All Statuses</option>
           <option value={IssueStatus.OPEN}>Open</option>
@@ -153,7 +153,7 @@ export const IssuesView: React.FC = () => {
         <select
           value={severityFilter}
           onChange={(e) => setSeverityFilter(e.target.value)}
-          className="px-2.5 py-1.5 bg-[#141724] border border-zinc-700/70 rounded-lg text-xs text-zinc-200 focus:outline-none focus:border-indigo-500"
+          className="px-2.5 py-1.5 bg-[#121520] border border-zinc-800 rounded-lg text-xs text-zinc-200 focus:outline-none focus:border-zinc-600"
         >
           <option value="all">All Severities</option>
           <option value={IssueSeverity.CRITICAL}>Critical</option>
@@ -166,7 +166,7 @@ export const IssuesView: React.FC = () => {
         <select
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value)}
-          className="px-2.5 py-1.5 bg-[#141724] border border-zinc-700/70 rounded-lg text-xs text-zinc-200 focus:outline-none focus:border-indigo-500"
+          className="px-2.5 py-1.5 bg-[#121520] border border-zinc-800 rounded-lg text-xs text-zinc-200 focus:outline-none focus:border-zinc-600"
         >
           <option value="all">All Priorities</option>
           <option value={IssuePriority.URGENT}>Urgent (P0)</option>
@@ -180,7 +180,7 @@ export const IssuesView: React.FC = () => {
           <select
             value={componentFilter}
             onChange={(e) => setComponentFilter(e.target.value)}
-            className="px-2.5 py-1.5 bg-[#141724] border border-zinc-700/70 rounded-lg text-xs text-zinc-200 focus:outline-none focus:border-indigo-500"
+            className="px-2.5 py-1.5 bg-[#121520] border border-zinc-800 rounded-lg text-xs text-zinc-200 focus:outline-none focus:border-zinc-600"
           >
             <option value="all">All Components</option>
             {componentsList.map((c) => (
@@ -197,7 +197,7 @@ export const IssuesView: React.FC = () => {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="bg-[#141724] border border-zinc-700/70 rounded-lg px-2 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-indigo-500 font-mono"
+            className="bg-[#121520] border border-zinc-800 rounded-lg px-2 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-600 font-mono"
           >
             <option value="created">Newest First</option>
             <option value="number">Issue #</option>
@@ -225,7 +225,7 @@ export const IssuesView: React.FC = () => {
             <tbody className="divide-y divide-zinc-800/60">
               {filteredIssues.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-zinc-500 text-xs">
+                  <td colSpan={7} className="py-12 text-center text-zinc-500 text-xs font-mono">
                     No issues match current filters.
                   </td>
                 </tr>
@@ -237,12 +237,12 @@ export const IssuesView: React.FC = () => {
                     className="hover:bg-zinc-800/40 cursor-pointer transition-colors group"
                   >
                     {/* Key */}
-                    <td className="py-3.5 px-4 font-mono font-semibold text-indigo-400 whitespace-nowrap">
+                    <td className="py-3 px-4 font-mono font-semibold text-indigo-400 whitespace-nowrap">
                       FIX-{issue.issue_number}
                     </td>
 
                     {/* Title + Component + Source Tag */}
-                    <td className="py-3.5 px-4 min-w-[280px]">
+                    <td className="py-3 px-4 min-w-[280px]">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-zinc-200 group-hover:text-indigo-300 transition-colors line-clamp-1">
                           {issue.title}
@@ -250,7 +250,7 @@ export const IssuesView: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         {issue.component && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/60">
                             {issue.component}
                           </span>
                         )}
@@ -259,28 +259,28 @@ export const IssuesView: React.FC = () => {
                     </td>
 
                     {/* Status */}
-                    <td className="py-3.5 px-3 whitespace-nowrap">
+                    <td className="py-3 px-3 whitespace-nowrap">
                       <StatusBadge status={issue.status} />
                     </td>
 
                     {/* Severity */}
-                    <td className="py-3.5 px-3 whitespace-nowrap">
+                    <td className="py-3 px-3 whitespace-nowrap">
                       <SeverityBadge severity={issue.severity} />
                     </td>
 
                     {/* Priority */}
-                    <td className="py-3.5 px-3 whitespace-nowrap">
+                    <td className="py-3 px-3 whitespace-nowrap">
                       <PriorityBadge priority={issue.priority} />
                     </td>
 
                     {/* Assignee */}
-                    <td className="py-3.5 px-3 whitespace-nowrap">
+                    <td className="py-3 px-3 whitespace-nowrap">
                       {issue.assignee ? (
                         <div className="flex items-center gap-1.5 text-zinc-300">
-                          <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-indigo-700 to-purple-700 text-white flex items-center justify-center text-[9px] font-bold">
+                          <div className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 flex items-center justify-center text-[9px] font-mono font-semibold">
                             {getInitials(issue.assignee.name)}
                           </div>
-                          <span className="truncate max-w-[100px]">{issue.assignee.name}</span>
+                          <span className="truncate max-w-[100px] text-xs">{issue.assignee.name}</span>
                         </div>
                       ) : (
                         <span className="text-zinc-500 font-mono text-[11px]">Unassigned</span>
@@ -288,7 +288,7 @@ export const IssuesView: React.FC = () => {
                     </td>
 
                     {/* Date */}
-                    <td className="py-3.5 px-4 text-right font-mono text-[11px] text-zinc-500 whitespace-nowrap">
+                    <td className="py-3 px-4 text-right font-mono text-[11px] text-zinc-500 whitespace-nowrap">
                       {formatDate(issue.created_at)}
                     </td>
                   </tr>

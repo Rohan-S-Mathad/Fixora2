@@ -179,15 +179,15 @@ export const AIBugHunterView: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center">
-              <ShieldAlert className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-lg bg-zinc-800 text-zinc-200 border border-zinc-700 flex items-center justify-center">
+              <ShieldAlert className="w-4 h-4 text-zinc-300" />
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                AI Bug Hunter & Repository Scanner
+                Security Scanner & Code Analysis
               </h1>
               <p className="text-xs text-zinc-400">
-                Automated Static Analysis (SAST), Secret Detection & AI Triage Pipeline.
+                Automated Static Analysis (SAST), Secret Detection, and Automated Remediation.
               </p>
             </div>
           </div>
@@ -195,7 +195,7 @@ export const AIBugHunterView: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <span className="text-xs font-mono text-zinc-400 bg-zinc-900 px-2.5 py-1 rounded border border-zinc-800">
-            Engine: Bandit • Semgrep • Gitleaks
+            Engines: Bandit • Semgrep • Gitleaks
           </span>
         </div>
       </div>
@@ -211,14 +211,14 @@ export const AIBugHunterView: React.FC = () => {
               value={repoUrl}
               onChange={(e) => setRepoUrl(e.target.value)}
               disabled={isScanning}
-              className="w-full pl-9 pr-3 py-2 bg-[#121520] border border-zinc-700/80 rounded-lg text-xs font-mono text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+              className="w-full pl-9 pr-3 py-2 bg-[#121520] border border-zinc-800 rounded-lg text-xs font-mono text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-600"
             />
           </div>
 
           <button
             onClick={handleStartScan}
             disabled={isScanning || !repoUrl.trim()}
-            className="flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/20 disabled:opacity-50 transition-all shrink-0"
+            className="flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 disabled:opacity-50 transition-all shrink-0"
           >
             {isScanning ? (
               <>
@@ -228,7 +228,7 @@ export const AIBugHunterView: React.FC = () => {
             ) : (
               <>
                 <Play className="w-3.5 h-3.5" />
-                <span>Start Repository Scan</span>
+                <span>Run SAST Scan</span>
               </>
             )}
           </button>
@@ -238,12 +238,12 @@ export const AIBugHunterView: React.FC = () => {
         {isScanning && (
           <div className="space-y-1.5 pt-2 animate-in fade-in">
             <div className="flex items-center justify-between text-xs font-mono text-zinc-400">
-              <span>Analysis in progress...</span>
+              <span>Pipeline execution in progress...</span>
               <span>{scanProgress}%</span>
             </div>
-            <div className="w-full h-2 rounded-full bg-zinc-800 overflow-hidden">
+            <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-indigo-500 via-rose-500 to-amber-500 transition-all duration-300"
+                className="h-full bg-indigo-500 transition-all duration-300"
                 style={{ width: `${scanProgress}%` }}
               />
             </div>
@@ -254,7 +254,7 @@ export const AIBugHunterView: React.FC = () => {
         {(isScanning || scanLogs.length > 0) && (
           <div className="bg-[#08090e] border border-zinc-800 rounded-lg p-3 max-h-40 overflow-y-auto font-mono text-[11px] text-zinc-300 space-y-1">
             <div className="flex items-center gap-1.5 text-zinc-500 pb-1 border-b border-zinc-900 text-[10px] uppercase">
-              <Terminal className="w-3 h-3 text-cyan-400" />
+              <Terminal className="w-3 h-3 text-zinc-400" />
               <span>Pipeline Stream Output</span>
             </div>
             {scanLogs.map((log, idx) => (
@@ -262,11 +262,11 @@ export const AIBugHunterView: React.FC = () => {
                 key={idx}
                 className={`leading-relaxed ${
                   log.includes("[SUCCESS]")
-                    ? "text-emerald-400 font-semibold"
+                    ? "text-emerald-400 font-medium"
                     : log.includes("[AI_TRIAGE]")
                     ? "text-indigo-300"
                     : log.includes("[SEMGREP]") || log.includes("[BANDIT]")
-                    ? "text-rose-300"
+                    ? "text-zinc-300"
                     : "text-zinc-400"
                 }`}
               >
@@ -284,23 +284,23 @@ export const AIBugHunterView: React.FC = () => {
             <span className="text-[11px] font-mono uppercase text-zinc-500">Security Score</span>
             <p className="text-2xl font-bold font-mono text-emerald-400 mt-1">B+ (84/100)</p>
           </div>
-          <ShieldCheck className="w-8 h-8 text-emerald-500/30" />
+          <ShieldCheck className="w-6 h-6 text-zinc-600" />
         </div>
 
-        <div className="p-4 rounded-xl bg-[#0e1017] border border-rose-900/30 flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-[#0e1017] border border-zinc-800/80 flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-mono uppercase text-rose-400">Critical SAST</span>
+            <span className="text-[11px] font-mono uppercase text-rose-400">Critical Findings</span>
             <p className="text-2xl font-bold font-mono text-rose-400 mt-1">{criticalCount}</p>
           </div>
-          <Flame className="w-8 h-8 text-rose-500/30" />
+          <Flame className="w-6 h-6 text-rose-500/40" />
         </div>
 
-        <div className="p-4 rounded-xl bg-[#0e1017] border border-orange-900/30 flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-[#0e1017] border border-zinc-800/80 flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-mono uppercase text-orange-400">High Severity</span>
-            <p className="text-2xl font-bold font-mono text-orange-400 mt-1">{highCount}</p>
+            <span className="text-[11px] font-mono uppercase text-amber-400">High Severity</span>
+            <p className="text-2xl font-bold font-mono text-amber-400 mt-1">{highCount}</p>
           </div>
-          <AlertTriangle className="w-8 h-8 text-orange-500/30" />
+          <AlertTriangle className="w-6 h-6 text-amber-500/40" />
         </div>
 
         <div className="p-4 rounded-xl bg-[#0e1017] border border-zinc-800 flex items-center justify-between">
@@ -308,7 +308,7 @@ export const AIBugHunterView: React.FC = () => {
             <span className="text-[11px] font-mono uppercase text-zinc-400">Total Findings</span>
             <p className="text-2xl font-bold font-mono text-zinc-100 mt-1">{findings.length}</p>
           </div>
-          <FileCode className="w-8 h-8 text-zinc-500/30" />
+          <FileCode className="w-6 h-6 text-zinc-600" />
         </div>
       </div>
 
@@ -379,11 +379,11 @@ export const AIBugHunterView: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <SeverityBadge severity={selectedFinding.severity} />
-                    <span className="text-xs font-mono font-bold text-cyan-400 uppercase bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/50">
-                      {selectedFinding.tool} Detector
+                    <span className="text-xs font-mono font-medium text-zinc-300 uppercase bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700">
+                      {selectedFinding.tool}
                     </span>
                   </div>
-                  <h2 className="text-base font-bold text-zinc-100">
+                  <h2 className="text-base font-semibold text-zinc-100">
                     {selectedFinding.title}
                   </h2>
                   <p className="text-xs font-mono text-zinc-400 mt-1">
@@ -409,7 +409,7 @@ export const AIBugHunterView: React.FC = () => {
                   ) : (
                     <button
                       onClick={() => handleCreateIssueFromFinding(selectedFinding)}
-                      className="px-4 py-2 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 flex items-center gap-1.5 transition-all"
+                      className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition-all"
                     >
                       <Sparkles className="w-3.5 h-3.5" />
                       <span>Convert to Issue</span>
@@ -419,9 +419,9 @@ export const AIBugHunterView: React.FC = () => {
                   {selectedFinding.status !== ScanFindingStatus.DISMISSED && selectedFinding.status !== ScanFindingStatus.CREATED_ISSUE && (
                     <button
                       onClick={() => handleDismissFinding(selectedFinding)}
-                      className="text-[11px] text-zinc-500 hover:text-zinc-300"
+                      className="text-[11px] text-zinc-500 hover:text-zinc-300 font-mono"
                     >
-                      Dismiss False Positive
+                      Dismiss Finding
                     </button>
                   )}
                 </div>
@@ -433,16 +433,16 @@ export const AIBugHunterView: React.FC = () => {
                   <Code2 className="w-3.5 h-3.5 text-zinc-400" />
                   <span>Vulnerable Code Snippet</span>
                 </h3>
-                <div className="bg-[#090b11] p-4 rounded-lg border border-rose-900/40 font-mono text-xs text-rose-200 overflow-x-auto">
+                <div className="bg-[#090b11] p-4 rounded-lg border border-zinc-800 font-mono text-xs text-rose-300/90 overflow-x-auto">
                   <pre className="whitespace-pre-wrap">{selectedFinding.code_snippet}</pre>
                 </div>
               </div>
 
               {/* AI Deep Analysis */}
               <div>
-                <h3 className="text-xs font-mono uppercase tracking-wider text-indigo-400 mb-2 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>Fixora AI Threat Synthesis</span>
+                <h3 className="text-xs font-mono uppercase tracking-wider text-zinc-400 mb-2 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>Automated Remediation & Analysis</span>
                 </h3>
                 <div className="bg-[#121520] p-4 rounded-lg border border-zinc-800 text-xs text-zinc-300 font-mono leading-relaxed">
                   {selectedFinding.ai_analysis}

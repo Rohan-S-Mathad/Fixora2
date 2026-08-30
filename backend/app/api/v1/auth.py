@@ -1,7 +1,7 @@
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.app.api.deps import get_current_user, get_current_user_optional, get_db
+from backend.app.api.deps import get_current_user, get_db
 from backend.app.core.config import settings
 from backend.app.core.security import create_access_token
 from backend.app.models.user import User
@@ -67,7 +67,16 @@ async def get_all_users(
 async def switch_user(
     body: dict,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
+    # Strictly disallow arbitrary user switching in production
+    if settings.ENVIRONMENT == "production" or not settings.ENABLE_DEV_USER_SWITCHING:
+        if current_user.role != "admin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User switching is disabled or restricted to administrators.",
+            )
+
     user_id = body.get("user_id")
     if not user_id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="user_id is required")
@@ -79,4 +88,3 @@ async def switch_user(
         expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
     )
     return Token(access_token=access_token, token_type="bearer", user=UserOut.model_validate(user))
-

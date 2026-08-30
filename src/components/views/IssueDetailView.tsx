@@ -234,7 +234,7 @@ export const IssueDetailView: React.FC = () => {
           {/* Header Info */}
           <div className="p-6 rounded-xl bg-[#0d0f17] border border-zinc-800/80 space-y-4">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-sm font-bold text-indigo-400 bg-indigo-950/40 px-2.5 py-0.5 rounded border border-indigo-800/50">
+              <span className="font-mono text-sm font-semibold text-indigo-400 bg-zinc-800 px-2.5 py-0.5 rounded border border-zinc-700/60">
                 FIX-{issue.issue_number}
               </span>
               <span className="text-xs text-zinc-500 font-mono">
@@ -242,7 +242,7 @@ export const IssueDetailView: React.FC = () => {
               </span>
             </div>
 
-            <h1 className="text-lg font-bold text-zinc-100 leading-snug">
+            <h1 className="text-lg font-semibold text-zinc-100 leading-snug">
               {issue.title}
             </h1>
 
@@ -275,18 +275,18 @@ export const IssueDetailView: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <Code2 className="w-4 h-4 text-emerald-400" />
                     <h3 className="text-xs font-mono uppercase tracking-wider text-emerald-400 font-semibold">
-                      AI Suggested Fix & Patch
+                      Suggested Fix & Patch
                     </h3>
                   </div>
                   <button
                     onClick={() => copyPatch(issue.suggested_fix!)}
-                    className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white px-2 py-1 rounded bg-zinc-800 border border-zinc-700"
+                    className="flex items-center gap-1 text-[11px] font-mono text-zinc-300 hover:text-white px-2 py-1 rounded bg-zinc-800 border border-zinc-700"
                   >
                     {hasCopiedPatch ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                     <span>{hasCopiedPatch ? "Copied" : "Copy Patch"}</span>
                   </button>
                 </div>
-                <div className="bg-[#090b11] p-4 rounded-lg border border-emerald-900/40 text-xs font-mono text-emerald-200/90 whitespace-pre-wrap overflow-x-auto">
+                <div className="bg-[#090b11] p-4 rounded-lg border border-zinc-800 text-xs font-mono text-emerald-300/90 whitespace-pre-wrap overflow-x-auto">
                   {issue.suggested_fix}
                 </div>
               </div>
@@ -304,14 +304,14 @@ export const IssueDetailView: React.FC = () => {
 
             <div className="space-y-3 max-h-56 overflow-y-auto">
               {history.length === 0 ? (
-                <p className="text-xs text-zinc-500">No status changes recorded yet.</p>
+                <p className="text-xs text-zinc-500 font-mono">No status changes recorded yet.</p>
               ) : (
                 history.map((h) => (
                   <div key={h.id} className="flex items-start gap-2.5 text-xs text-zinc-400 font-mono">
                     <Clock className="w-3.5 h-3.5 text-zinc-500 mt-0.5 shrink-0" />
                     <div>
                       <span className="text-zinc-200 font-semibold">{h.user?.name || "System"}</span>{" "}
-                      changed <span className="text-indigo-300 font-semibold">{h.field_changed}</span>{" "}
+                      changed <span className="text-zinc-300 font-semibold">{h.field_changed}</span>{" "}
                       {h.old_value && (
                         <>
                           from <span className="text-zinc-400 line-through">{h.old_value}</span>{" "}
@@ -344,21 +344,21 @@ export const IssueDetailView: React.FC = () => {
                   key={comm.id}
                   className={`p-3.5 rounded-lg border text-xs space-y-2 ${
                     comm.is_ai_generated
-                      ? "bg-indigo-950/20 border-indigo-500/30 text-indigo-100"
+                      ? "bg-[#111420] border-zinc-700/70 text-zinc-200"
                       : "bg-[#121520] border-zinc-800 text-zinc-200"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center text-[9px] font-bold">
+                      <div className="w-5 h-5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 flex items-center justify-center text-[9px] font-mono font-semibold">
                         {getInitials(comm.user?.name)}
                       </div>
                       <span className="font-semibold text-zinc-200">
                         {comm.user?.name || "Developer"}
                       </span>
                       {comm.is_ai_generated && (
-                        <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-indigo-500/30 text-indigo-300 border border-indigo-500/40">
-                          AI Agent
+                        <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700">
+                          Automated Diagnostics
                         </span>
                       )}
                     </div>
@@ -366,7 +366,7 @@ export const IssueDetailView: React.FC = () => {
                       {formatDateTime(comm.created_at)}
                     </span>
                   </div>
-                  <div className="font-mono text-xs whitespace-pre-wrap leading-relaxed">
+                  <div className="font-mono text-xs whitespace-pre-wrap leading-relaxed text-zinc-300">
                     {comm.content}
                   </div>
                 </div>
@@ -380,7 +380,7 @@ export const IssueDetailView: React.FC = () => {
                 placeholder="Leave a comment, code review note, or test result..."
                 value={newCommentText}
                 onChange={(e) => setNewCommentText(e.target.value)}
-                className="w-full px-3 py-2 bg-[#141724] border border-zinc-700/80 rounded-lg text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 font-mono"
+                className="w-full px-3 py-2 bg-[#121520] border border-zinc-800 rounded-lg text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-600 font-mono"
               />
               <div className="flex justify-end">
                 <button
@@ -411,7 +411,7 @@ export const IssueDetailView: React.FC = () => {
               <select
                 value={issue.status}
                 onChange={(e) => handleStatusChange(e.target.value as IssueStatus)}
-                className="w-full px-2.5 py-1.5 bg-[#141724] border border-zinc-700/80 rounded-lg text-xs text-zinc-200 font-medium focus:outline-none focus:border-indigo-500"
+                className="w-full px-2.5 py-1.5 bg-[#121520] border border-zinc-800 rounded-lg text-xs text-zinc-200 font-medium focus:outline-none focus:border-zinc-600"
               >
                 <option value={IssueStatus.OPEN}>Open</option>
                 <option value={IssueStatus.IN_PROGRESS}>In Progress</option>
@@ -430,7 +430,7 @@ export const IssueDetailView: React.FC = () => {
               <select
                 value={issue.severity}
                 onChange={(e) => handleSeverityChange(e.target.value as IssueSeverity)}
-                className="w-full px-2.5 py-1.5 bg-[#141724] border border-zinc-700/80 rounded-lg text-xs text-zinc-200 font-medium focus:outline-none focus:border-indigo-500"
+                className="w-full px-2.5 py-1.5 bg-[#121520] border border-zinc-800 rounded-lg text-xs text-zinc-200 font-medium focus:outline-none focus:border-zinc-600"
               >
                 <option value={IssueSeverity.CRITICAL}>Critical (Blocker)</option>
                 <option value={IssueSeverity.HIGH}>High</option>
@@ -448,7 +448,7 @@ export const IssueDetailView: React.FC = () => {
               <select
                 value={issue.priority}
                 onChange={(e) => handlePriorityChange(e.target.value as IssuePriority)}
-                className="w-full px-2.5 py-1.5 bg-[#141724] border border-zinc-700/80 rounded-lg text-xs text-zinc-200 font-medium focus:outline-none focus:border-indigo-500"
+                className="w-full px-2.5 py-1.5 bg-[#121520] border border-zinc-800 rounded-lg text-xs text-zinc-200 font-medium focus:outline-none focus:border-zinc-600"
               >
                 <option value={IssuePriority.URGENT}>Urgent (P0)</option>
                 <option value={IssuePriority.HIGH}>High (P1)</option>
@@ -465,7 +465,7 @@ export const IssueDetailView: React.FC = () => {
               <select
                 value={issue.assignee_id || ""}
                 onChange={(e) => handleAssigneeChange(e.target.value)}
-                className="w-full px-2.5 py-1.5 bg-[#141724] border border-zinc-700/80 rounded-lg text-xs text-zinc-200 font-medium focus:outline-none focus:border-indigo-500"
+                className="w-full px-2.5 py-1.5 bg-[#121520] border border-zinc-800 rounded-lg text-xs text-zinc-200 font-medium focus:outline-none focus:border-zinc-600"
               >
                 <option value="">Unassigned</option>
                 {members.map((m) => (
@@ -489,7 +489,7 @@ export const IssueDetailView: React.FC = () => {
                   const updated = await updateIssue(issue.id, { component: val });
                   setIssue(updated);
                 }}
-                className="w-full px-2.5 py-1.5 bg-[#141724] border border-zinc-700/80 rounded-lg text-xs text-zinc-200 font-mono focus:outline-none focus:border-indigo-500"
+                className="w-full px-2.5 py-1.5 bg-[#121520] border border-zinc-800 rounded-lg text-xs text-zinc-200 font-mono focus:outline-none focus:border-zinc-600"
               />
             </div>
           </div>

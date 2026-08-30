@@ -8,6 +8,7 @@ from sqlalchemy import (
     String,
     Table,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 from backend.app.core.database import Base
@@ -49,6 +50,9 @@ class Label(Base):
 
 class Issue(Base):
     __tablename__ = "issues"
+    __table_args__ = (
+        UniqueConstraint("project_id", "issue_number", name="uq_project_issue_number"),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     project_id = Column(

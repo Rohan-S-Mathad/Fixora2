@@ -13,8 +13,7 @@ import {
   Bug,
   ChevronLeft,
   ChevronRight,
-  ExternalLink,
-  Zap,
+  Terminal,
 } from "lucide-react";
 import { getInitials } from "../../lib/utils";
 
@@ -40,10 +39,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const navItemClass = (viewId: string) => {
     const active = activeView === viewId;
-    return `w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all group ${
+    return `w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors group ${
       active
-        ? "bg-indigo-600/15 text-indigo-300 border border-indigo-500/30 shadow-sm"
-        : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/60"
+        ? "bg-zinc-800 text-zinc-100 border border-zinc-700/60"
+        : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
     }`;
   };
 
@@ -58,16 +57,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }}
           className="flex items-center gap-2.5 cursor-pointer"
         >
-          <div className="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-inner group-hover:scale-105 transition-transform">
-            <Bug className="w-4 h-4" />
+          <div className="w-7 h-7 rounded-md bg-zinc-800 border border-zinc-700/80 flex items-center justify-center text-indigo-400">
+            <Bug className="w-3.5 h-3.5" />
           </div>
           {!isCollapsed && (
-            <div className="flex flex-col">
-              <span className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold tracking-tight text-white font-mono">
                 Fixora
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-indigo-950/80 text-indigo-400 border border-indigo-800/50">
-                  v1.4
-                </span>
+              </span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-800/80 text-zinc-400 border border-zinc-700/50">
+                v1.4
               </span>
             </div>
           )}
@@ -101,7 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className={navItemClass("dashboard")}
               title={isCollapsed ? "Dashboard" : undefined}
             >
-              <LayoutDashboard className="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-indigo-300" />
+              <LayoutDashboard className="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-zinc-200" />
               {!isCollapsed && <span>Dashboard</span>}
             </button>
 
@@ -113,7 +112,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className={navItemClass("projects")}
               title={isCollapsed ? "Projects" : undefined}
             >
-              <FolderGit2 className="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-indigo-300" />
+              <FolderGit2 className="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-zinc-200" />
               {!isCollapsed && <span>Projects</span>}
             </button>
 
@@ -125,12 +124,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className={navItemClass("issues")}
               title={isCollapsed ? "Issues" : undefined}
             >
-              <CheckSquare className="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-indigo-300" />
+              <CheckSquare className="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-zinc-200" />
               {!isCollapsed && (
                 <div className="flex items-center justify-between w-full">
                   <span>Issues</span>
                   {openIssuesCount > 0 && (
-                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700">
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 border border-zinc-700/60">
                       {openIssuesCount}
                     </span>
                   )}
@@ -146,18 +145,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className={navItemClass("board")}
               title={isCollapsed ? "Kanban Board" : undefined}
             >
-              <KanbanSquare className="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-indigo-300" />
-              {!isCollapsed && <span>Kanban Board</span>}
+              <KanbanSquare className="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-zinc-200" />
+              {!isCollapsed && <span>Kanban</span>}
             </button>
           </div>
         </div>
 
-        {/* AI & Security Section */}
+        {/* Diagnostics & Security Section */}
         <div>
           {!isCollapsed && (
-            <div className="px-2 mb-1.5 text-[10px] font-mono uppercase tracking-widest text-indigo-400/90 flex items-center justify-between">
-              <span>AI Intelligence</span>
-              <Sparkles className="w-3 h-3 text-indigo-400" />
+            <div className="px-2 mb-1.5 text-[10px] font-mono uppercase tracking-widest text-zinc-500">
+              Analysis & Security
             </div>
           )}
           <div className="space-y-1">
@@ -167,14 +165,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 if (isMobileOpen) onCloseMobile();
               }}
               className={navItemClass("ai-hunter")}
-              title={isCollapsed ? "AI Bug Hunter" : undefined}
+              title={isCollapsed ? "Security Scanner" : undefined}
             >
-              <ShieldAlert className="w-4 h-4 shrink-0 text-rose-400 group-hover:text-rose-300" />
+              <ShieldAlert className="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-zinc-200" />
               {!isCollapsed && (
                 <div className="flex items-center justify-between w-full">
-                  <span className="text-zinc-200">AI Bug Hunter</span>
-                  <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                    Live
+                  <span>Security Scanner</span>
+                  <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
+                    SAST
                   </span>
                 </div>
               )}
@@ -186,10 +184,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 if (isMobileOpen) onCloseMobile();
               }}
               className={navItemClass("ai-assistant")}
-              title={isCollapsed ? "Bug Assistant" : undefined}
+              title={isCollapsed ? "Diagnostic Assistant" : undefined}
             >
-              <Sparkles className="w-4 h-4 shrink-0 text-indigo-400 group-hover:text-indigo-300" />
-              {!isCollapsed && <span>Bug Assistant</span>}
+              <Sparkles className="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-zinc-200" />
+              {!isCollapsed && <span>Diagnostic Assistant</span>}
             </button>
           </div>
         </div>
@@ -210,7 +208,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className={navItemClass("analytics")}
               title={isCollapsed ? "Analytics" : undefined}
             >
-              <BarChart className="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-indigo-300" />
+              <BarChart className="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-zinc-200" />
               {!isCollapsed && <span>Analytics</span>}
             </button>
 
@@ -222,7 +220,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className={navItemClass("settings")}
               title={isCollapsed ? "Settings" : undefined}
             >
-              <Settings className="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-indigo-300" />
+              <Settings className="w-4 h-4 shrink-0 text-zinc-400 group-hover:text-zinc-200" />
               {!isCollapsed && <span>Settings</span>}
             </button>
           </div>
@@ -232,18 +230,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Footer Profile */}
       <div className="p-3 border-t border-zinc-800/80 bg-[#06070b]">
         {!isCollapsed ? (
-          <div className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-zinc-900/60 border border-zinc-800/80">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center text-xs font-bold ring-1 ring-white/10 shrink-0">
+          <div className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg bg-zinc-900/60 border border-zinc-800/80">
+            <div className="w-7 h-7 rounded-md bg-zinc-800 text-zinc-200 border border-zinc-700 flex items-center justify-center text-xs font-mono font-semibold shrink-0">
               {getInitials(user?.name)}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-zinc-200 truncate">{user?.name || "Alex River"}</p>
+              <p className="text-xs font-medium text-zinc-200 truncate">{user?.name || "Alex River"}</p>
               <p className="text-[10px] text-zinc-500 font-mono truncate">{user?.email || "alex@fixora.io"}</p>
             </div>
           </div>
         ) : (
           <div className="flex justify-center">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center text-xs font-bold ring-1 ring-white/10">
+            <div className="w-7 h-7 rounded-md bg-zinc-800 text-zinc-200 border border-zinc-700 flex items-center justify-center text-xs font-mono font-semibold">
               {getInitials(user?.name)}
             </div>
           </div>

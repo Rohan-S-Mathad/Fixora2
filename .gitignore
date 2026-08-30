@@ -6,3 +6,11 @@ coverage/
 *.log
 .env*
 !.env.example
+*.db
+*.sqlite
+*.sqlite3
+fixora.db
+__pycache__/
+*.pyc
+.pytest_cache/
+

@@ -19,6 +19,23 @@ import {
   Sprint,
 } from "../types";
 
+export interface DashboardMetrics {
+  total_issues: number;
+  open_issues: number;
+  in_progress_issues: number;
+  critical_issues: number;
+  resolved_issues: number;
+  resolution_rate: number;
+  security_score: string;
+  security_score_num: number;
+  scans_count: number;
+  total_security_findings: number;
+  critical_security_findings: number;
+  active_sprint_name?: string | null;
+  active_sprint_goal?: string | null;
+  active_sprint_id?: string | null;
+}
+
 export const getApiBaseUrl = (): string => {
   if (typeof window !== "undefined") {
     return (
@@ -72,10 +89,17 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
 
   const url = `${baseUrl}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
 
-  const res = await fetch(url, {
-    ...options,
-    headers,
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch (err: any) {
+    throw new Error(
+      `Network connection failed: ${err.message || "Unable to reach Fixora API backend"}`
+    );
+  }
 
   if (res.status === 401) {
     clearAuthToken();
@@ -96,7 +120,9 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
 
   const json = await res.json();
   if (!res.ok) {
-    throw new Error(json.detail || `Request failed with status ${res.status}`);
+    const errorDetail =
+      json.detail || json.message || `Request failed with status ${res.status}`;
+    throw new Error(typeof errorDetail === "string" ? errorDetail : JSON.stringify(errorDetail));
   }
 
   return json as T;
@@ -315,6 +341,58 @@ export const api = {
         body: JSON.stringify(data),
       });
     },
+
+    async generatePatch(data: {
+      code_context: string;
+      error_message: string;
+      file_path?: string;
+      bug_description?: string;
+    }): Promise<{ patch: string; explanation: string; test_case?: string; model_used?: string }> {
+      return apiRequest<{ patch: string; explanation: string; test_case?: string; model_used?: string }>(
+        "/ai/generate-patch",
+        {
+          method: "POST",
+          body: JSON.stringify(data),
+        }
+      );
+    },
+
+    async triageFinding(data: {
+      tool: string;
+      finding_title: string;
+      finding_description: string;
+      code_snippet?: string;
+      file_path?: string;
+    }): Promise<{
+      root_cause: string;
+      suggested_fix: string;
+      patch?: string;
+      severity: string;
+      confidence: string;
+      model_used?: string;
+    }> {
+      return apiRequest<{
+        root_cause: string;
+        suggested_fix: string;
+        patch?: string;
+        severity: string;
+        confidence: string;
+        model_used?: string;
+      }>("/ai/triage-finding", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+  },
+
+  // -------------------------------------------------------------------------
+  // Dashboard & Metrics API
+  // -------------------------------------------------------------------------
+  dashboard: {
+    async getMetrics(projectId?: string): Promise<DashboardMetrics> {
+      const qs = projectId ? `?project_id=${projectId}` : "";
+      return apiRequest<DashboardMetrics>(`/dashboard/metrics${qs}`, { method: "GET" });
+    },
   },
 
   // -------------------------------------------------------------------------
@@ -355,12 +433,11 @@ export const api = {
     },
 
     async createIssueFromFinding(findingId: string): Promise<Issue> {
-      const res = await apiRequest<{ issue_id: string; finding_id: string; status: string }>(
+      const issue = await apiRequest<Issue>(
         `/security/findings/${findingId}/create-issue`,
         { method: "POST" }
       );
-      // Fetch full issue record
-      return api.issues.get(res.issue_id);
+      return issue;
     },
 
     async ignoreFinding(findingId: string): Promise<ScanFinding> {
@@ -377,50 +454,43 @@ export const api = {
   },
 
   // -------------------------------------------------------------------------
-  // Notifications (Local state management for alert center)
+  // Notifications API (Real backend with local fallback)
   // -------------------------------------------------------------------------
   notifications: {
     async list(): Promise<NotificationItem[]> {
       try {
-        const raw = localStorage.getItem("fixora_notifications");
-        if (raw) return JSON.parse(raw);
+        const list = await apiRequest<NotificationItem[]>("/notifications", { method: "GET" });
+        return list;
       } catch (err) {
-        console.error(err);
+        // Fallback to local storage if offline or unauthenticated
+        try {
+          const raw = localStorage.getItem("fixora_notifications");
+          if (raw) return JSON.parse(raw);
+        } catch (e) {
+          console.error(e);
+        }
+        return [];
       }
-      return [
-        {
-          id: "notif-1",
-          user_id: "usr-admin-01",
-          type: "critical_bug",
-          title: "Critical Security Finding Detected",
-          message: "AST Analyzer flagged SQL Injection in backend/services/query.py",
-          read: false,
-          created_at: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
-          link: "ai-hunter",
-        },
-        {
-          id: "notif-2",
-          user_id: "usr-admin-01",
-          type: "issue_assigned",
-          title: "New Blocker Assigned",
-          message: "Sarah assigned FIX-102 (Token Expiry Race Condition) to you",
-          read: false,
-          created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-          link: "issues",
-        },
-      ];
     },
 
     async markAsRead(id: string): Promise<void> {
-      const items = await api.notifications.list();
-      const updated = items.map((n) => (n.id === id ? { ...n, read: true } : n));
-      localStorage.setItem("fixora_notifications", JSON.stringify(updated));
+      try {
+        await apiRequest(`/notifications/${id}/read`, { method: "PATCH" });
+      } catch (err) {
+        const items = await api.notifications.list();
+        const updated = items.map((n) => (n.id === id ? { ...n, read: true } : n));
+        localStorage.setItem("fixora_notifications", JSON.stringify(updated));
+      }
     },
 
     async markAllAsRead(): Promise<void> {
-      const items = await api.notifications.list();
-      const updated = items.map((n) => ({ ...n, read: true }));
-      localStorage.setItem("fixora_notifications", JSON.stringify(updated));
+      try {
+        await apiRequest("/notifications/read-all", { method: "POST" });
+      } catch (err) {
+        const items = await api.notifications.list();
+        const updated = items.map((n) => ({ ...n, read: true }));
+        localStorage.setItem("fixora_notifications", JSON.stringify(updated));
+      }
     },
   },
 };

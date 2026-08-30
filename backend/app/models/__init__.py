@@ -6,6 +6,7 @@ from backend.app.models.comment import Comment
 from backend.app.models.audit import AuditLog
 from backend.app.models.security_finding import Scan, SecurityFinding
 from backend.app.models.ai_analysis import AIAnalysis
+from backend.app.models.notification import Notification
 
 __all__ = [
     "User",
@@ -21,4 +22,5 @@ __all__ = [
     "Scan",
     "SecurityFinding",
     "AIAnalysis",
+    "Notification",
 ]

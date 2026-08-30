@@ -16,11 +16,11 @@ import {
 import { SeverityBadge, PriorityBadge, SourceBadge } from "../common/Badges";
 import { getInitials } from "../../lib/utils";
 
-const COLUMNS: { id: IssueStatus; title: string; color: string }[] = [
-  { id: IssueStatus.OPEN, title: "Backlog & Open", color: "border-sky-500/40 bg-sky-500/5" },
-  { id: IssueStatus.IN_PROGRESS, title: "In Progress", color: "border-amber-500/40 bg-amber-500/5" },
-  { id: IssueStatus.IN_REVIEW, title: "In Review", color: "border-purple-500/40 bg-purple-500/5" },
-  { id: IssueStatus.RESOLVED, title: "Resolved & Closed", color: "border-emerald-500/40 bg-emerald-500/5" },
+const COLUMNS: { id: IssueStatus; title: string }[] = [
+  { id: IssueStatus.OPEN, title: "Backlog & Open" },
+  { id: IssueStatus.IN_PROGRESS, title: "In Progress" },
+  { id: IssueStatus.IN_REVIEW, title: "In Review" },
+  { id: IssueStatus.RESOLVED, title: "Resolved" },
 ];
 
 export const KanbanBoardView: React.FC = () => {
@@ -110,14 +110,12 @@ export const KanbanBoardView: React.FC = () => {
               className="flex flex-col bg-[#0b0d14] border border-zinc-800/80 rounded-xl overflow-hidden min-h-[400px]"
             >
               {/* Column Header */}
-              <div
-                className={`p-3 border-b border-zinc-800 flex items-center justify-between ${col.color}`}
-              >
+              <div className="p-3 border-b border-zinc-800 bg-[#0e1017] flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider font-mono">
+                  <h3 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider font-mono">
                     {col.title}
                   </h3>
-                  <span className="text-[10px] font-mono font-semibold px-1.5 py-0.2 rounded-full bg-zinc-800/90 text-zinc-300 border border-zinc-700">
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 border border-zinc-700/60">
                     {colIssues.length}
                   </span>
                 </div>
@@ -137,7 +135,7 @@ export const KanbanBoardView: React.FC = () => {
               {/* Cards list */}
               <div className="flex-1 p-2.5 space-y-2.5 overflow-y-auto">
                 {colIssues.length === 0 ? (
-                  <div className="h-32 flex items-center justify-center border border-dashed border-zinc-800 rounded-lg text-[11px] text-zinc-600">
+                  <div className="h-32 flex items-center justify-center border border-dashed border-zinc-800 rounded-lg text-[11px] text-zinc-600 font-mono">
                     No active issues
                   </div>
                 ) : (
@@ -148,24 +146,24 @@ export const KanbanBoardView: React.FC = () => {
                         setSelectedIssueId(issue.id);
                         setActiveView("issue-detail");
                       }}
-                      className="p-3 bg-[#111420] hover:bg-[#151928] border border-zinc-800/90 hover:border-zinc-700 rounded-lg shadow-sm cursor-pointer transition-all space-y-2.5 group"
+                      className="p-3 bg-[#0e1017] hover:bg-zinc-900/80 border border-zinc-800/90 hover:border-zinc-700 rounded-lg shadow-sm cursor-pointer transition-colors space-y-2.5 group"
                     >
                       {/* Top row: Key and Severity */}
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-[11px] font-bold text-indigo-400 group-hover:text-indigo-300">
+                        <span className="font-mono text-[11px] font-semibold text-indigo-400 group-hover:text-indigo-300">
                           FIX-{issue.issue_number}
                         </span>
                         <SeverityBadge severity={issue.severity} />
                       </div>
 
                       {/* Title */}
-                      <p className="text-xs font-semibold text-zinc-200 line-clamp-2 leading-snug">
+                      <p className="text-xs font-medium text-zinc-200 line-clamp-2 leading-snug">
                         {issue.title}
                       </p>
 
                       {/* Component + Source */}
                       <div className="flex items-center justify-between gap-2 text-[10px] font-mono text-zinc-400 pt-1 border-t border-zinc-800/60">
-                        <span className="truncate max-w-[120px] bg-zinc-800/60 px-1.5 py-0.5 rounded text-zinc-300">
+                        <span className="truncate max-w-[120px] bg-zinc-800/60 px-1.5 py-0.5 rounded text-zinc-300 border border-zinc-700/50">
                           {issue.component || "General"}
                         </span>
                         <SourceBadge source={issue.source} />
@@ -175,10 +173,10 @@ export const KanbanBoardView: React.FC = () => {
                       <div className="flex items-center justify-between pt-1 text-xs">
                         {issue.assignee ? (
                           <div className="flex items-center gap-1.5 text-zinc-300 text-[11px]">
-                            <div className="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[8px] font-bold">
+                            <div className="w-4 h-4 rounded bg-zinc-800 border border-zinc-700 text-zinc-200 flex items-center justify-center text-[8px] font-mono font-semibold">
                               {getInitials(issue.assignee.name)}
                             </div>
-                            <span className="truncate max-w-[80px]">{issue.assignee.name}</span>
+                            <span className="truncate max-w-[80px] text-xs">{issue.assignee.name}</span>
                           </div>
                         ) : (
                           <span className="text-[10px] text-zinc-500 font-mono">Unassigned</span>
@@ -190,7 +188,7 @@ export const KanbanBoardView: React.FC = () => {
                             onClick={(e) =>
                               handleMoveStatus(issue.id, COLUMNS[colIdx + 1].id, e)
                             }
-                            className="p-1 rounded text-zinc-400 hover:text-indigo-300 hover:bg-zinc-800 transition-colors flex items-center gap-0.5 text-[10px] font-mono"
+                            className="p-1 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors flex items-center gap-0.5 text-[10px] font-mono"
                             title={`Move to ${COLUMNS[colIdx + 1].title}`}
                           >
                             <span>Move</span>

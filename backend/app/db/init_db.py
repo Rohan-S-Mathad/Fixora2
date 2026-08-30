@@ -1,7 +1,9 @@
 import asyncio
+import logging
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from backend.app.core.config import settings
 from backend.app.core.database import Base, engine, AsyncSessionLocal
 from backend.app.core.security import get_password_hash
 from backend.app.models.user import User
@@ -11,19 +13,20 @@ from backend.app.models.issue import Issue, Label
 from backend.app.models.comment import Comment
 from backend.app.models.audit import AuditLog
 from backend.app.models.security_finding import Scan, SecurityFinding
+from backend.app.models.notification import Notification
+
+logger = logging.getLogger("fixora.db")
 
 
-async def init_db() -> None:
-    # Create all tables asynchronously
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
+async def seed_demo_data() -> None:
     async with AsyncSessionLocal() as session:
         # Check if already seeded
         result = await session.execute(select(User).limit(1))
         if result.scalars().first():
+            logger.info("Database already contains data, skipping demo seed.")
             return
 
+        logger.info("Seeding initial Fixora demo dataset...")
         now = datetime.now(timezone.utc)
 
         # 1. Create Users
@@ -202,66 +205,25 @@ async def init_db() -> None:
                 old_value="high",
                 new_value="critical",
             ),
-        ])
-
-        # 7. Add Initial Scan
-        scan_1 = Scan(
-            id="scan-demo-01",
-            project_id=fixora_core.id,
-            initiated_by=alex_user.id,
-            scan_type="repository",
-            status="completed",
-            target_url="https://github.com/Rohan-S-Mathad/Fixora",
-            started_at=now - timedelta(hours=2),
-            completed_at=now - timedelta(hours=2) + timedelta(seconds=14),
-            summary={
-                "total_findings": 3,
-                "critical": 1,
-                "high": 1,
-                "medium": 1,
-                "low": 0,
-                "security_score": "A-",
-                "scanned_files": 34,
-                "duration_ms": 1420,
-            },
-        )
-        session.add(scan_1)
-        await session.flush()
-
-        session.add_all([
-            SecurityFinding(
-                scan_id=scan_1.id,
-                tool="semgrep",
-                title="Potential Hardcoded API Secret in Configuration File",
-                description="High entropy token assignment detected in client config.",
-                file_path="src/config/keys.ts",
-                line_number=14,
-                code_snippet="export const API_SECRET_FALLBACK = 'sk_live_9482710398471923';",
-                severity="critical",
-                confidence="high",
-                ai_analysis="Exposing static tokens in frontend bundles enables unauthorized API impersonation.",
-                ai_suggested_fix="Migrate the token to server-side environment variables.",
-                evidence="Pattern match: /sk_live_[a-zA-Z0-9]{20,}/",
-                status="pending",
-            ),
-            SecurityFinding(
-                scan_id=scan_1.id,
-                tool="bandit",
-                title="Unsanitized Dynamic Input in Query Parameter",
-                description="String interpolation detected in query builder parameter.",
-                file_path="backend/services/query.py",
-                line_number=42,
-                code_snippet="query = f'SELECT * FROM users WHERE email = {user_input}'",
-                severity="high",
-                confidence="high",
-                ai_analysis="Direct string formatting permits SQL injection payloads.",
-                ai_suggested_fix="Replace with parameterized SQLAlchemy bind parameters.",
-                evidence="B608:hardcoded_sql_expressions",
-                status="pending",
+            Notification(
+                user_id=demo_user.id,
+                type="info",
+                title="System Initialized",
+                message="Welcome to Fixora AI Developer Platform. Workspace is active and secured.",
+                read=False,
             ),
         ])
 
         await session.commit()
+        logger.info("Demo data seed completed successfully.")
+
+
+async def init_db() -> None:
+    # In development, ensure tables exist; in production, migrations must be run via Alembic
+    if settings.ENVIRONMENT != "production":
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        await seed_demo_data()
 
 
 if __name__ == "__main__":

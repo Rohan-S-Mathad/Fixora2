@@ -121,15 +121,15 @@ jwt.exceptions.ExpiredSignatureError: Signature has expired`
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center">
-              <Sparkles className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-lg bg-zinc-800 text-zinc-200 border border-zinc-700 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-zinc-300" />
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight text-white">
-                AI Bug Assistant
+                Diagnostic Assistant
               </h1>
               <p className="text-xs text-zinc-400">
-                Automated bug diagnosis, severity triage, root-cause deduction, and code patch generator.
+                Automated bug diagnosis, root-cause deduction, and code patch synthesis.
               </p>
             </div>
           </div>
@@ -142,7 +142,7 @@ jwt.exceptions.ExpiredSignatureError: Signature has expired`
         </div>
       </div>
 
-      {/* Main 2-Column Interface: Input Form on Left, AI Output on Right */}
+      {/* Main 2-Column Interface: Input Form on Left, Output on Right */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Form (6 Cols) */}
         <div className="lg:col-span-6">
@@ -161,7 +161,7 @@ jwt.exceptions.ExpiredSignatureError: Signature has expired`
 
             {/* Error Log / Description */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 font-mono">
                 Error Logs, Stack Trace or Bug Symptoms <span className="text-rose-400">*</span>
               </label>
               <textarea
@@ -170,14 +170,14 @@ jwt.exceptions.ExpiredSignatureError: Signature has expired`
                 placeholder="Paste tracebacks, console errors, or bug descriptions..."
                 value={bugDescription}
                 onChange={(e) => setBugDescription(e.target.value)}
-                className="w-full px-3 py-2 bg-[#121520] border border-zinc-700/80 rounded-lg text-xs font-mono text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                className="w-full px-3 py-2 bg-[#121520] border border-zinc-800 rounded-lg text-xs font-mono text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-600"
               />
             </div>
 
             {/* Component & Environment */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 font-mono">
                   Subsystem / Component
                 </label>
                 <input
@@ -185,12 +185,12 @@ jwt.exceptions.ExpiredSignatureError: Signature has expired`
                   placeholder="e.g. Auth, DB, Payments"
                   value={component}
                   onChange={(e) => setComponent(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#121520] border border-zinc-700/80 rounded-lg text-xs font-mono text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 bg-[#121520] border border-zinc-800 rounded-lg text-xs font-mono text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-600"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 font-mono">
                   Runtime Environment
                 </label>
                 <input
@@ -198,14 +198,14 @@ jwt.exceptions.ExpiredSignatureError: Signature has expired`
                   placeholder="e.g. Python 3.11, PostgreSQL"
                   value={environment}
                   onChange={(e) => setEnvironment(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#121520] border border-zinc-700/80 rounded-lg text-xs font-mono text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 bg-[#121520] border border-zinc-800 rounded-lg text-xs font-mono text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-600"
                 />
               </div>
             </div>
 
             {/* Reproduction Steps */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5 font-mono">
                 Observed Steps / Context (Optional)
               </label>
               <textarea
@@ -213,7 +213,7 @@ jwt.exceptions.ExpiredSignatureError: Signature has expired`
                 placeholder="1. Step one&#10;2. Step two"
                 value={reproductionSteps}
                 onChange={(e) => setReproductionSteps(e.target.value)}
-                className="w-full px-3 py-2 bg-[#121520] border border-zinc-700/80 rounded-lg text-xs font-mono text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
+                className="w-full px-3 py-2 bg-[#121520] border border-zinc-800 rounded-lg text-xs font-mono text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-600"
               />
             </div>
 
@@ -222,7 +222,7 @@ jwt.exceptions.ExpiredSignatureError: Signature has expired`
               <button
                 type="submit"
                 disabled={isAnalyzing || !bugDescription.trim()}
-                className="w-full py-2.5 px-4 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-4 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
               >
                 {isAnalyzing ? (
                   <>
@@ -232,7 +232,7 @@ jwt.exceptions.ExpiredSignatureError: Signature has expired`
                 ) : (
                   <>
                     <Zap className="w-4 h-4" />
-                    <span>Run AI Bug Diagnosis</span>
+                    <span>Run Diagnostic Analysis</span>
                   </>
                 )}
               </button>
@@ -243,18 +243,17 @@ jwt.exceptions.ExpiredSignatureError: Signature has expired`
         {/* Right Column: AI Output Panel (6 Cols) */}
         <div className="lg:col-span-6">
           {analysisResult ? (
-            <div className="p-6 rounded-xl bg-[#0d0f17] border border-indigo-500/40 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+            <div className="p-6 rounded-xl bg-[#0d0f17] border border-zinc-800 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
               <div className="flex items-start justify-between gap-3 pb-4 border-b border-zinc-800">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-indigo-400" />
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-zinc-800 text-zinc-300 border border-zinc-700 flex items-center gap-1">
                       Confidence: {analysisResult.confidence}
                     </span>
                     <SeverityBadge severity={analysisResult.severity} />
                     <PriorityBadge priority={analysisResult.priority} />
                   </div>
-                  <h2 className="text-sm font-bold text-zinc-100">
+                  <h2 className="text-sm font-semibold text-zinc-100">
                     {analysisResult.title}
                   </h2>
                 </div>
@@ -271,8 +270,8 @@ jwt.exceptions.ExpiredSignatureError: Signature has expired`
 
               {/* Root Cause */}
               <div>
-                <h3 className="text-xs font-mono uppercase tracking-wider text-indigo-400 mb-1.5">
-                  Root Cause Deduction
+                <h3 className="text-xs font-mono uppercase tracking-wider text-zinc-400 mb-1.5">
+                  Root Cause Analysis
                 </h3>
                 <div className="bg-[#121520] p-3.5 rounded-lg border border-zinc-800 text-xs font-mono text-zinc-300 leading-relaxed">
                   {analysisResult.root_cause}
@@ -298,7 +297,7 @@ jwt.exceptions.ExpiredSignatureError: Signature has expired`
                     <span>{hasCopiedCode ? "Copied" : "Copy"}</span>
                   </button>
                 </div>
-                <div className="bg-[#090b11] p-4 rounded-lg border border-emerald-900/40 text-xs font-mono text-emerald-200 overflow-x-auto">
+                <div className="bg-[#090b11] p-4 rounded-lg border border-zinc-800 text-xs font-mono text-emerald-300/90 overflow-x-auto">
                   <pre className="whitespace-pre-wrap">{analysisResult.suggested_fix}</pre>
                 </div>
               </div>
@@ -313,7 +312,7 @@ jwt.exceptions.ExpiredSignatureError: Signature has expired`
                     {analysisResult.labels.map((l) => (
                       <span
                         key={l}
-                        className="px-2 py-0.5 rounded text-[11px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700"
+                        className="px-2 py-0.5 rounded text-[11px] font-mono bg-zinc-800 text-zinc-300 border border-zinc-700/60"
                       >
                         #{l}
                       </span>
@@ -324,13 +323,13 @@ jwt.exceptions.ExpiredSignatureError: Signature has expired`
             </div>
           ) : (
             <div className="h-full min-h-[350px] flex flex-col items-center justify-center p-8 rounded-xl bg-[#0d0f17] border border-dashed border-zinc-800 text-center space-y-3">
-              <div className="w-12 h-12 rounded-xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
-                <Sparkles className="w-6 h-6" />
+              <div className="w-10 h-10 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-zinc-400" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-zinc-300">Awaiting Bug Input</h3>
+                <h3 className="text-sm font-semibold text-zinc-300">Awaiting Telemetry Input</h3>
                 <p className="text-xs text-zinc-500 max-w-sm mt-1">
-                  Fill in the error details on the left and click &ldquo;Run AI Bug Diagnosis&rdquo; to analyze the stack trace.
+                  Fill in the error details on the left and click &ldquo;Run Diagnostic Analysis&rdquo; to analyze the stack trace.
                 </p>
               </div>
             </div>
